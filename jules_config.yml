@@ -39,6 +39,6 @@ schedules:
   master_controller_time: "04:00"
 
 # 3. Repository esclusi da master-setup.yml (niente secret, workflow, label né altro).
-# Configurazioni è una wiki di solo markdown: nessun workflow.
+# Configurazioni è la wiki degli agenti: non ospita workflow né automazioni di progetto.
 excluded_repos:
   - "GabryXnLab/Configurazioni"
