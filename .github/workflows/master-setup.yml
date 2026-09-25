@@ -95,12 +95,19 @@ jobs:
             fi
           fi
 
+          # Repo da non toccare mai (jules_config.yml → excluded_repos), es. repo di sola documentazione
+          EXCLUDED_REPOS=$(yq eval '.excluded_repos[]' jules_config.yml 2>/dev/null || echo "")
+
           # Get all non-archived repos where the user has push access (owner or collaborator)
           echo "🔍 Fetching repository list..."
           gh api --paginate "/user/repos?per_page=100" | jq -r '.[] | select(.archived == false and .permissions.push == true) | "\(.full_name) \(.default_branch) \(if .private then "private" else "public" end)"' > repos_list.txt
 
           while read -r REPO DEFAULT_BRANCH VISIBILITY; do
             if [ "$REPO" == "$GITHUB_REPOSITORY" ]; then
+              continue
+            fi
+            if printf '%s\n' "$EXCLUDED_REPOS" | grep -qixF "$REPO"; then
+              echo "⏩ $REPO è in excluded_repos: saltato."
               continue
             fi
 

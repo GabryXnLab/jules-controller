@@ -37,3 +37,8 @@ schedules:
   # Esecuzione del Master Controller ciclico (Default suggerito: 04:00)
   # Gestito da: controller.yml
   master_controller_time: "04:00"
+
+# 3. Repository esclusi da master-setup.yml (niente secret, workflow, label né altro).
+# Configurazioni è una wiki di solo markdown: nessun workflow.
+excluded_repos:
+  - "GabryXnLab/Configurazioni"
