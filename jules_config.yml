@@ -20,6 +20,13 @@ features:
   # Auto-deploy su Google Apps Script per progetti Clasp (clasp_deploy.yml + clasp_targets.yml)
   clasp_deployment: true
 
+  # Review automatica delle PR (Gemini nei repo privati, CodeRabbit nei pubblici) da master-setup.yml
+  pr_review: false
+
+  # Branch protection del branch di default su tutti i repo (PR obbligatoria anche per gli admin).
+  # Spenta: bloccherebbe i push diretti e i workflow che committano sul branch.
+  branch_protection: false
+
 # 2. Scheduling (Orari in formato HH:MM - Fuso Orario di ROMA)
 # I cambiamenti qui aggiorneranno automaticamente i workflow di GitHub.
 schedules:

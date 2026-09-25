@@ -47,8 +47,18 @@ jobs:
       - name: Check PR Review Config
         id: check_pr_review
         run: |
-          PR_REVIEW_ENABLED=$(yq eval '.features.pr_review // true' jules_config.yml)
+          # Non '// true': in yq l'operatore alternativo scarta anche false, e il flag non si
+          # potrebbe mai spegnere. Assente = attivo.
+          PR_REVIEW_ENABLED=$(yq eval '.features.pr_review' jules_config.yml)
+          [ "$PR_REVIEW_ENABLED" = "null" ] && PR_REVIEW_ENABLED=true
           echo "pr_review_enabled=$PR_REVIEW_ENABLED" >> $GITHUB_OUTPUT
+
+      - name: Check Branch Protection Config
+        id: check_protection
+        run: |
+          PROTECTION_ENABLED=$(yq eval '.features.branch_protection' jules_config.yml)
+          [ "$PROTECTION_ENABLED" = "null" ] && PROTECTION_ENABLED=true
+          echo "protection_enabled=$PROTECTION_ENABLED" >> $GITHUB_OUTPUT
 
       - name: 🚀 Run Sequential Setup
         if: steps.check_config.outputs.enabled == 'true'
@@ -59,6 +69,7 @@ jobs:
           CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
           CLASP_ENABLED: ${{ steps.check_clasp.outputs.clasp_enabled }}
           PR_REVIEW_ENABLED: ${{ steps.check_pr_review.outputs.pr_review_enabled }}
+          PROTECTION_ENABLED: ${{ steps.check_protection.outputs.protection_enabled }}
         run: |
           TEMPLATE_AGENT="templates/jules_agent.yml"
           TEMPLATE_CLASP="templates/clasp_deploy.yml"
@@ -266,7 +277,9 @@ jobs:
                 -f color='6B46C1' --silent || echo "  ⚠️  Failed to sync 'jules' label"
 
               # 6. Apply Branch Protection (Only if default_branch is not null/empty)
-              if [ -n "$DEFAULT_BRANCH" ] && [ "$DEFAULT_BRANCH" != "null" ]; then
+              if [ "$PROTECTION_ENABLED" != "true" ]; then
+                echo "  ⏩ Branch protection is disabled in config. Skipping."
+              elif [ -n "$DEFAULT_BRANCH" ] && [ "$DEFAULT_BRANCH" != "null" ]; then
                 echo "  🛡️ Setting up Branch Protection on '$DEFAULT_BRANCH'..."
                 gh api --method PUT "/repos/$REPO/branches/$DEFAULT_BRANCH/protection" \
                   -f required_status_checks='null' \
