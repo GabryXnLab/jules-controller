@@ -40,5 +40,8 @@ schedules:
 
 # 3. Repository esclusi da master-setup.yml (niente secret, workflow, label né altro).
 # Configurazioni è la wiki degli agenti: non ospita workflow né automazioni di progetto.
+# kagami è pubblico e deve restare di chiunque: niente workflow né secret personali
+# (il lavoro privato sta in kagami-private, che resta un target).
 excluded_repos:
   - "GabryXnLab/Configurazioni"
+  - "GabryXnLab/kagami"
