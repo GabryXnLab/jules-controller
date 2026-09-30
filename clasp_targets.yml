@@ -26,7 +26,7 @@ clasp_targets:
 
   # ── Automation Spoke ────────────────────
   # .clasp.json è in .gitignore → serve CLASP_SCRIPT_ID come secret
-  - repo: "GabryXn/automation-spoke"
+  - repo: "GabryXnLab/automation-spoke"
     root_dir: "./dist"
 
 

@@ -126,9 +126,32 @@ jobs:
                 gh secret set GEMINI_API_KEY -R "$REPO" -b "$GEMINI_API_KEY" || echo "  ⚠️  Failed to set GEMINI_API_KEY"
               fi
 
-              if [ -n "$CLASPRC_JSON" ]; then
+              # Progetto clasp? (config-driven OR auto-detect): decide sia il secret sia clasp_deploy.yml
+              IS_CLASP_TARGET="false"
+              if [ "$CLASP_ENABLED" == "true" ]; then
+                # Check config-driven targets first
+                if echo "$CLASP_TARGETS" | grep -qx "$REPO"; then
+                  IS_CLASP_TARGET="true"
+                  echo "  ✨ Clasp project (from clasp_targets.yml)"
+                else
+                  # Fallback: auto-detect .clasp.json in repo
+                  HAS_CLASP=$(gh api "repos/$REPO/contents/.clasp.json" --silent > /dev/null 2>&1 && echo "true" || echo "false")
+                  if [ "$HAS_CLASP" == "true" ]; then
+                    IS_CLASP_TARGET="true"
+                    echo "  ✨ Clasp project (auto-detected via .clasp.json)"
+                  fi
+                fi
+              fi
+
+              # CLASPRC_JSON è il refresh token OAuth di Google di clasp: va solo dove gira
+              # clasp_deploy.yml. In un repo pubblico chi ottiene push lo leggerebbe, quindi
+              # lì, se non è un progetto clasp, si toglie anche se c'era.
+              if [ "$IS_CLASP_TARGET" == "true" ] && [ -n "$CLASPRC_JSON" ]; then
                 echo "  🔑 Syncing CLASPRC_JSON..."
                 gh secret set CLASPRC_JSON -R "$REPO" -b "$CLASPRC_JSON" || echo "  ⚠️  Failed to set CLASPRC_JSON"
+              elif [ "$VISIBILITY" == "public" ] && gh secret list -R "$REPO" --json name -q '.[].name' 2>/dev/null | grep -qx CLASPRC_JSON; then
+                echo "  🧹 Public repo, not a clasp project: removing CLASPRC_JSON..."
+                gh secret delete CLASPRC_JSON -R "$REPO" || echo "  ⚠️  Failed to remove CLASPRC_JSON"
               fi
 
               # 2. Deploy jules_agent.yml (skip if content is identical)
@@ -228,23 +251,7 @@ jobs:
                 fi
               fi
 
-              # 4. Detect & Deploy clasp_deploy.yml (config-driven OR auto-detect)
-              IS_CLASP_TARGET="false"
-              if [ "$CLASP_ENABLED" == "true" ]; then
-                # Check config-driven targets first
-                if echo "$CLASP_TARGETS" | grep -qx "$REPO"; then
-                  IS_CLASP_TARGET="true"
-                  echo "  ✨ Clasp project (from clasp_targets.yml)"
-                else
-                  # Fallback: auto-detect .clasp.json in repo
-                  HAS_CLASP=$(gh api "repos/$REPO/contents/.clasp.json" --silent > /dev/null 2>&1 && echo "true" || echo "false")
-                  if [ "$HAS_CLASP" == "true" ]; then
-                    IS_CLASP_TARGET="true"
-                    echo "  ✨ Clasp project (auto-detected via .clasp.json)"
-                  fi
-                fi
-              fi
-
+              # 4. Deploy clasp_deploy.yml
               if [ "$IS_CLASP_TARGET" == "true" ]; then
                 echo "  📄 Checking clasp_deploy.yml..."
                 EXISTING_CLASP_JSON=$(gh api "repos/$REPO/contents/$DEST_CLASP" 2>/dev/null || echo "")
