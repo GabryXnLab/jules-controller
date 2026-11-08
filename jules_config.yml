@@ -42,6 +42,9 @@ schedules:
 # infra-wiki (ex Configurazioni) è la wiki degli agenti: non ospita workflow né automazioni di progetto.
 # kagami è pubblico e deve restare di chiunque: niente workflow né secret personali
 # (il lavoro privato sta in kagami-private, che resta un target).
+# oikos è la wiki personale e familiare del proprietario (dati di terzi, contenuto cifrato):
+# nessun agente esterno, workflow o secret.
 excluded_repos:
   - "GabryXnLab/infra-wiki"
   - "GabryXnLab/kagami"
+  - "GabryXnLab/oikos"
