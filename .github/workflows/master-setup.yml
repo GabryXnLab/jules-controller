@@ -89,6 +89,8 @@ jobs:
           CLASP_TARGETS=""
           if [ -f "clasp_targets.yml" ] && [ "$CLASP_ENABLED" == "true" ]; then
             CLASP_TARGETS=$(yq eval '.clasp_targets[].repo' clasp_targets.yml 2>/dev/null || echo "")
+            # Repo con un proprio workflow di deploy: ricevono il secret ma non clasp_deploy.yml
+            CLASP_OWN_WORKFLOW=$(yq eval '.clasp_targets[] | select(.own_workflow == true) | .repo' clasp_targets.yml 2>/dev/null || echo "")
             if [ -n "$CLASP_TARGETS" ]; then
               echo "📋 Clasp targets from config:"
               echo "$CLASP_TARGETS" | sed 's/^/  - /'
@@ -252,7 +254,9 @@ jobs:
               fi
 
               # 4. Deploy clasp_deploy.yml
-              if [ "$IS_CLASP_TARGET" == "true" ]; then
+              if [ "$IS_CLASP_TARGET" == "true" ] && echo "$CLASP_OWN_WORKFLOW" | grep -qx "$REPO"; then
+                echo "  ⏩ Clasp project with its own deploy workflow. Skipping clasp_deploy.yml."
+              elif [ "$IS_CLASP_TARGET" == "true" ]; then
                 echo "  📄 Checking clasp_deploy.yml..."
                 EXISTING_CLASP_JSON=$(gh api "repos/$REPO/contents/$DEST_CLASP" 2>/dev/null || echo "")
                 CLASP_SHA=""

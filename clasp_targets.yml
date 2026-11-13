@@ -29,6 +29,12 @@ clasp_targets:
   - repo: "GabryXnLab/automation-spoke"
     root_dir: "./dist"
 
+  # ── Uni Timetable Sync ──────────────────
+  # Pubblico, scriptId nelle variabili del repo e deploy nel suo deploy.yml:
+  # serve solo il secret CLASPRC_JSON, senza clasp_deploy.yml
+  - repo: "GabryXnLab/uni-timetable-sync"
+    own_workflow: true
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #  📋 TEMPLATE — Per aggiungere nuovi target
@@ -36,6 +42,7 @@ clasp_targets:
 #
 #  - repo: "<owner>/<nome-repository>"
 #    root_dir: "./dist"          # Directory output del build (default: ./dist)
+#    own_workflow: true          # Il repo ha già un suo deploy: solo il secret CLASPRC_JSON
 #
 # Dopo aver aggiunto il target:
 #   1. Imposta CLASP_SCRIPT_ID come secret sul repo target
